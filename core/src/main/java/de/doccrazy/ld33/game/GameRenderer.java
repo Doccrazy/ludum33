@@ -11,6 +11,7 @@ import box2dLight.ConeLight;
 import box2dLight.RayHandler;
 import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.game.actor.PlayerActor;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.BaseGameRenderer;
 import de.doccrazy.shared.game.world.Box2dWorld;
 
@@ -43,10 +44,12 @@ public class GameRenderer extends BaseGameRenderer {
 
 	@Override
 	protected void beforeRender() {
+	    gameViewport.x = ((GameWorld)world).getLevel().getBoundingBox().width;
+	    gameViewport.y = ((GameWorld)world).getLevel().getBoundingBox().height;
 	    //zoom = MathUtils.clamp(zoom + zoomDelta*0.02f, 1f, 2f);
 
-        camera.position.x = GameRules.LEVEL_WIDTH / 2;
-        camera.position.y = GameRules.LEVEL_HEIGHT / 2;
+        camera.position.x = gameViewport.x / 2;
+        camera.position.y = gameViewport.y / 2;
 
         /*if (animateCamera) {
             camY -= Gdx.graphics.getDeltaTime() * CAM_PPS;

@@ -7,10 +7,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Joint;
-import com.badlogic.gdx.physics.box2d.joints.DistanceJointDef;
+import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Timer;
 
@@ -32,25 +33,28 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
     private static final float JUMP_STRENGTH = 0.04f;
     private static final float JUMP_MIN = 0.03f;
     private static final float JUMP_MAX = 0.15f;
+    private static final float OOB_KILL_TIME = 1f;
 
     private MovementInputListener movement;
     private List<Joint> attachJoints = new ArrayList<>();
-    private DistanceJointDef attachJointDef;
-    private boolean jump, build;
-    private ThreadType threadType = ThreadType.STRUCTURE;
+    private RevoluteJointDef attachJointDef;
+    private boolean jump;
+    private ThreadType threadType = null;
     private AttachedPoint startBuild;
     private Map<Body, Vector2> contacts = new HashMap<>();
+    private float oobTime, stateTime, dampingTime;
 
     public PlayerActor(Box2dWorld world, Vector2 spawn) {
         super(world, spawn, false);
         setUseRotation(false);
-        setScale(1.5f);
+        setScale(4, 2.5f);
+        setzOrder(50);
     }
 
     @Override
     protected BodyBuilder createBody(Vector2 spawn) {
         return BodyBuilder.forDynamic(spawn).gravityScale(0.5f).noRotate()
-                .fixSensor().fixShape(ShapeBuilder.circle(RADIUS)).fixProps(1, 1, 1);
+                .fixSensor().fixShape(ShapeBuilder.circle(RADIUS)).fixProps(1, 1, 1f);
     }
 
     public void setupKeyboardControl() {
@@ -64,26 +68,56 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
 
     @Override
     protected void doAct(float delta) {
-        boolean shouldJump = jump || build;
-        boolean released = checkRelease(shouldJump);
+        stateTime += delta;
+        boolean released = checkRelease(jump || isLooselyAttached());
         if (released) {
-            if (build) {
+            if (threadType != null) {
                 startBuild = ((GameWorld)world).createAttachedPoint(body.getPosition(), RADIUS, body);
             } else {
                 startBuild = null;
             }
             jump(delta);
         }
-        checkAttach(!shouldJump);
-        if (!((GameWorld)world).getLevel().getBoundingBox().contains(body.getPosition())) {
+        checkAttach(!jump);
+        checkOOB(delta);
+        if (stateTime - dampingTime < 0.5f) {
+            body.setLinearDamping(5);
+        } else {
+            body.setLinearDamping(0);
+        }
+        super.doAct(delta);
+    }
+
+    private void checkOOB(float delta) {
+        boolean outOfBounds = !((GameWorld)world).getLevel().getBoundingBox().contains(body.getPosition());
+        if (outOfBounds) {
+            oobTime += delta;
+        } else {
+            oobTime = 0;
+        }
+        if (oobTime > OOB_KILL_TIME) {
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
-                    world.transition(GameState.INIT);
+                    world.transition(GameState.DEFEAT);
                 }
-            }, 1f);
+            }, 0);
         }
-        super.doAct(delta);
+    }
+
+    private boolean isLooselyAttached() {
+        for (Joint joint : attachJoints) {
+            if (joint.getBodyB() == null) {
+                return true;
+            }
+            if (joint.getBodyB().getUserData() instanceof ThreadActor) {
+                ThreadActor thread = (ThreadActor)joint.getBodyB().getUserData();
+                if (thread.isLoose(joint.getBodyB())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void jump(float delta) {
@@ -97,13 +131,21 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
         if (shouldRelease && !attachJoints.isEmpty()) {
             //release
             for (Joint joint : attachJoints) {
-                world.box2dWorld.destroyJoint(joint);
+                if (joint.getBodyB() != null) {
+                    world.box2dWorld.destroyJoint(joint);
+                }
             }
             attachJoints.clear();
             return true;
+        } else if (startBuild != null && movement.pollJump()) {
+            ThreadActor newThread = createThread(null, body.getPosition());
+            if (newThread != null) {
+                attachToBody(newThread.getEndBody(), body.getPosition());
+                jump = false;
+            }
         } else if (attachJointDef != null) {
             attachJoints.add(world.box2dWorld.createJoint(attachJointDef));
-            postAttach(attachJointDef.bodyB, attachJointDef.bodyB.getWorldPoint(attachJointDef.localAnchorB));
+            createThread(attachJointDef.bodyB, attachJointDef.bodyB.getWorldPoint(attachJointDef.localAnchorB));
             attachJointDef = null;
         }
         return false;
@@ -115,30 +157,34 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
             Body other = entry.getKey();
             Vector2 contactPoint = entry.getValue();
             //attach
-            DistanceJointDef jointDef = new DistanceJointDef();
-            Vector2 attachPoint;
-            if (other.getUserData() instanceof ThreadActor) {
-                //thread
-                attachPoint = other.getPosition();
-            } else {
-                //level object
-                attachPoint = contactPoint == null ? body.getPosition() : contactPoint;
-                //move slightly to center of static body
-                attachPoint.add(other.getPosition().cpy().sub(body.getPosition()).clamp(0, RADIUS));
-            }
-            jointDef.initialize(body, other, body.getPosition(), attachPoint);
-            jointDef.frequencyHz = 60f;
-            jointDef.dampingRatio = 0.8f;
-            jointDef.length = RADIUS/2f;
-            attachJointDef = jointDef;
+            attachToBody(other, contactPoint);
             return true;
         }
         return false;
     }
 
+    private void attachToBody(Body other, Vector2 contactPoint) {
+        RevoluteJointDef jointDef = new RevoluteJointDef();
+        Vector2 attachPoint;
+        if (other.getUserData() instanceof ThreadActor) {
+            //thread
+            attachPoint = other.getPosition();
+        } else {
+            //level object
+            attachPoint = contactPoint == null ? body.getPosition() : contactPoint;
+            //move slightly to center of static body
+            attachPoint.add(other.getPosition().cpy().sub(body.getPosition()).clamp(0, RADIUS));
+        }
+        jointDef.initialize(body, other, body.getPosition());
+        jointDef.localAnchorA.setZero();
+        jointDef.localAnchorB.set(other.getLocalPoint(attachPoint));
+        attachJointDef = jointDef;
+    }
+
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        drawRegion(batch, Resource.GFX.dummy);
+        TextureRegion frame = Resource.GFX.spiderIdle.getKeyFrame(stateTime);
+        drawRegion(batch, frame);
     }
 
     public void setJump(boolean jump) {
@@ -146,7 +192,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
     }
 
     public void setBuild(boolean build) {
-        this.build = build;
+        //
     }
 
     public void setThreadType(ThreadType threadType) {
@@ -159,10 +205,14 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
         return true;
     }
 
-    private void postAttach(Body other, Vector2 attachPoint) {
+    private ThreadActor createThread(Body other, Vector2 attachPoint) {
         if (startBuild != null && startBuild.getAbsolutePos().dst(attachPoint) > 0.5f) {
-            ((GameWorld)world).createThread(startBuild.getAbsolutePos(), attachPoint, threadType);
+            ThreadActor result = ((GameWorld)world).createThread(startBuild.getAbsolutePos(), attachPoint, threadType);
+            startBuild = null;
+            dampingTime = stateTime;
+            return result;
         }
+        return null;
     }
 
     @Override

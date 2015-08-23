@@ -7,10 +7,13 @@ import box2dLight.RayHandler;
 import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.actor.FlyActor;
-import de.doccrazy.ld33.game.actor.Level1Actor;
+import de.doccrazy.ld33.game.actor.LeafActor;
+import de.doccrazy.ld33.game.actor.Level;
+import de.doccrazy.ld33.game.actor.Level2Actor;
 import de.doccrazy.ld33.game.actor.PlayerActor;
 import de.doccrazy.ld33.game.actor.ThreadActor;
-import de.doccrazy.shared.game.base.GamepadMovementListener;
+import de.doccrazy.ld33.game.actor.WindActor;
+import de.doccrazy.shared.game.actor.WorldActor;
 import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.GameState;
 
@@ -20,10 +23,9 @@ public class GameWorld extends Box2dWorld {
     private int score;
 	private boolean waitingForRound, gameOver;
 	private int round;
-	private boolean partInit;
-	private GamepadMovementListener moveListener;
     private Vector2 mouseTarget;
-    private Level1Actor level;
+    private Level level;
+    private boolean renderForces;
 
 	public GameWorld() {
         super(GameRules.GRAVITY);
@@ -39,10 +41,15 @@ public class GameWorld extends Box2dWorld {
                 //addActor(players[1] = new PlayerActor(this, new Vector2(GameRules.LEVEL_WIDTH-2, 0.25f), 1).flip());
                 //addActor(new FloorActor(this, new Vector2(0, 5.5f), new Vector2(1, 1)));
                 //addActor(new FloorActor(this, new Vector2(11, 5.5f), new Vector2(1, 1)));
-                addActor(level = new Level1Actor(this));
+                addActor((WorldActor)(level = new Level2Actor(this)));
                 //addActor(new PunchingBagActor(this, new Vector2(8, 2.5f)));
                 //addActor(new DummyActor(this, new Vector2(8, 0.0f)));
-                addActor(player = new PlayerActor(this, new Vector2(1.5f, 5f)));
+                addActor(player = new PlayerActor(this, level.getSpawn()));
+                player.setThreadType(null);
+                addActor(new WindActor(this));
+                for (int i = 0; i < 50; i++) {
+                    addActor(new LeafActor(this));
+                }
                 break;
             case PRE_GAME:
             	round++;
@@ -118,8 +125,10 @@ public class GameWorld extends Box2dWorld {
         return null;
     }
 
-    public void createThread(Vector2 start, Vector2 end, ThreadType threadType) {
-        addActor(new ThreadActor(this, start, end, threadType));
+    public ThreadActor createThread(Vector2 start, Vector2 end, ThreadType threadType) {
+        ThreadActor result = new ThreadActor(this, start, end, threadType);
+        addActor(result);
+        return result;
     }
 
     public void createFly(Vector2 spawn) {
@@ -134,7 +143,15 @@ public class GameWorld extends Box2dWorld {
         return mouseTarget;
     }
 
-    public Level1Actor getLevel() {
+    public Level getLevel() {
         return level;
+    }
+
+    public boolean isRenderForces() {
+        return renderForces;
+    }
+
+    public void setRenderForces(boolean renderForces) {
+        this.renderForces = renderForces;
     }
 }

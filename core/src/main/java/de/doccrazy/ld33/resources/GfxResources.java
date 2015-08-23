@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 import de.doccrazy.shared.core.ResourcesBase;
@@ -12,9 +14,15 @@ import de.doccrazy.shared.game.base.BlurUtils;
 public class GfxResources extends ResourcesBase {
     public Texture threadStructure = textureWrap("thread-structure.png");
     public Texture threadSticky = textureWrap("thread-sticky.png");
+    public Texture threadCounter = textureWrap("thread-counter.png");
     public Texture level1fg = texture("level1-fg.png");
+    public Texture level2fg = texture("level2.png");
+    public Texture level2Tutorial = texture("level2-tutorial.png");
     public Sprite[] fly = createBlurLevels(atlas.createSprite("fly"), 16);
     public Sprite dummy = atlas.createSprite("dummy");
+    public Sprite counterweight = atlas.createSprite("counterweight");
+    public Sprite dustMote = atlas.createSprite("dustMote");
+    public Animation spiderIdle = new Animation(0.016f, atlas.findRegions("spider_idle/spider_idle"), PlayMode.LOOP);
 
     public GfxResources() {
         super("game.atlas");

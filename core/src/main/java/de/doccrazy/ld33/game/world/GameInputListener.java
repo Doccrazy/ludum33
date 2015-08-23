@@ -7,12 +7,11 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.ui.UiRoot;
 import de.doccrazy.shared.game.world.GameState;
+import net.dermetfan.gdx.utils.ArrayUtils;
 
 public class GameInputListener extends InputListener {
     private GameWorld world;
     private UiRoot root;
-    private AttachedPoint start;
-    //private ThreadType threadType = ThreadType.STRUCTURE;
 
     public GameInputListener(UiRoot root) {
         this.root = root;
@@ -22,15 +21,23 @@ public class GameInputListener extends InputListener {
 
     @Override
     public boolean keyTyped(InputEvent event, char character) {
+        ThreadType type = null;
         switch (character) {
         case '1':
-            //threadType = ThreadType.STRUCTURE;
-            world.getPlayer().setThreadType(ThreadType.STRUCTURE);
+            world.getPlayer().setThreadType(null);
             break;
         case '2':
-            //threadType = ThreadType.STICKY;
-            world.getPlayer().setThreadType(ThreadType.STICKY);
+            type = ThreadType.STICKY;
             break;
+        case '3':
+            type = ThreadType.STRUCTURE;
+            break;
+        case '4':
+            type = ThreadType.COUNTERWEIGHT;
+            break;
+        }
+        if (type != null && ArrayUtils.contains(world.getLevel().getAllowedThreads(), type, false)) {
+            world.getPlayer().setThreadType(type);
         }
         return false;
     }

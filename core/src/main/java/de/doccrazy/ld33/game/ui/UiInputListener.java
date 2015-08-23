@@ -20,6 +20,12 @@ public class UiInputListener extends InputListener {
 			root.getWorld().transition(GameState.INIT);
 			root.getWorld().transition(GameState.PRE_GAME);
 		}
+		if (keycode == Keys.F) {
+		    root.getWorld().setRenderForces(!root.getWorld().isRenderForces());
+		}
+		if (keycode == Keys.F12) {
+		    root.getRenderer().setRenderBox2dDebug(!root.getRenderer().isRenderBox2dDebug());
+		}
 		if (Debug.ON) {
 			/*if (keycode == Keys.Z) {
 				root.getRenderer().setZoomDelta(1f);

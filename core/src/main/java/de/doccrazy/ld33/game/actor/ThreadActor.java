@@ -46,6 +46,10 @@ public class ThreadActor extends WorldActor {
         Body startBody = createLinkBody(start).build(world);
         Body endBody = createLinkBody(end).build(world);
         createChain(startBody, endBody, RADIUS, RADIUS);
+        if (threadType == ThreadType.COUNTERWEIGHT && attachEnd == null) {
+            CounterweightActor cw = new CounterweightActor(world, end, endBody);
+            world.addActor(cw);
+        }
 
         attach(startBody, attachStart, start);
         attach(endBody, attachEnd, end);
@@ -83,7 +87,7 @@ public class ThreadActor extends WorldActor {
     }
 
     private BodyBuilder createLinkBody(Vector2 pos) {
-        return BodyBuilder.forDynamic(pos).damping(2f, 2f).gravityScale(0.25f).userData(this)
+        return BodyBuilder.forDynamic(pos).damping(2f, 2f).noSleep().gravityScale(0.25f).userData(this)
                 .fixShape(ShapeBuilder.circle(RADIUS)).fixSensor().fixProps(3f, 0.1f, 0.1f);
     }
 
@@ -102,7 +106,7 @@ public class ThreadActor extends WorldActor {
                 points.add(body.getPosition());
             }
             float[] colors = this.colors;
-            if (drawForces()) {
+            if (((GameWorld)world).isRenderForces()) {
                 for (int i = 0; i < chain.getSegments().size; i++) {
                     Float force = null;
                     if (i == 0) {
@@ -130,10 +134,6 @@ public class ThreadActor extends WorldActor {
             PolyLineRenderer.drawLine(points, threadType.getWidth(), batch.getProjectionMatrix(), threadType.getTexture(), colors);
         }
         batch.begin();
-    }
-
-    private boolean drawForces() {
-        return true;
     }
 
     @Override
@@ -187,5 +187,16 @@ public class ThreadActor extends WorldActor {
 
     public ThreadType getThreadType() {
         return threadType;
+    }
+
+    public boolean isLoose(Body link) {
+        return false;
+    }
+
+    /**
+     * WARNING: Only works directly after thread creation
+     */
+    public Body getEndBody() {
+        return chains.get(0).getSegment(chains.get(0).length() - 1);
     }
 }

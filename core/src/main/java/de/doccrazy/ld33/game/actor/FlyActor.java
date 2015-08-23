@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
 import de.doccrazy.ld33.core.Resource;
+import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.base.CollisionListener;
 import de.doccrazy.shared.game.world.BodyBuilder;
@@ -21,7 +22,8 @@ public class FlyActor extends ShapeActor implements CollisionListener {
     private float stateTime;
     private float startZ = -3f, endZ = 3f, zSpeed = Z_SPEED;
     private float z;
-    private boolean caught;
+    private Body threadBody;
+    private Vector2 threadContactPoint;
 
     public FlyActor(Box2dWorld world, Vector2 spawn) {
         super(world, spawn, false);
@@ -46,9 +48,9 @@ public class FlyActor extends ShapeActor implements CollisionListener {
         stateTime += delta;
         z = startZ + zSpeed * stateTime;
         body.setActive(z > -0.3f && z < 0.3f);
-        if (caught) {
+        if (threadBody != null) {
             kill();
-            world.addActor(new CaughtFlyActor(world, body.getPosition()));
+            world.addActor(new CaughtFlyActor(world, body.getPosition(), threadBody, threadContactPoint));
         }
         if (z > endZ) {
             kill();
@@ -72,9 +74,13 @@ public class FlyActor extends ShapeActor implements CollisionListener {
             contactPoint = me.getPosition();
         }
         if (other.getUserData() instanceof ThreadActor) {
+            ThreadActor thread = (ThreadActor)other.getUserData();
             other.applyLinearImpulse(-impulse + (float)Math.random() * 2f * impulse,
                     -impulse + (float)Math.random() * 2f * impulse, contactPoint.x, contactPoint.y, true);
-            caught = true;
+            if (thread.getThreadType() == ThreadType.STICKY) {
+                threadBody = other;
+                threadContactPoint = contactPoint;
+            }
         }
         return true;
     }

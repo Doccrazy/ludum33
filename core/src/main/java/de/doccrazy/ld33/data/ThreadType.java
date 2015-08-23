@@ -6,7 +6,8 @@ import de.doccrazy.ld33.core.Resource;
 
 public enum ThreadType {
     STRUCTURE(0.05f, Resource.GFX.threadStructure, 20f),
-    STICKY(0.03f, Resource.GFX.threadSticky, 1.5f);
+    STICKY(0.03f, Resource.GFX.threadSticky, 3f),
+    COUNTERWEIGHT(0.04f, Resource.GFX.threadCounter, 30f);
 
     private final float width;
     private Texture texture;
