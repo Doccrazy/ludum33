@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -24,15 +25,14 @@ import de.doccrazy.shared.game.base.CollisionListener;
 import de.doccrazy.shared.game.base.KeyboardMovementListener;
 import de.doccrazy.shared.game.base.MovementInputListener;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.GameState;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class PlayerActor extends ShapeActor implements CollisionListener {
+public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListener {
     private static final float RADIUS = 0.07f;
     private static final float JUMP_STRENGTH = 0.04f;
     private static final float JUMP_MIN = 0.03f;
-    private static final float JUMP_MAX = 0.15f;
+    private static final float JUMP_MAX = 0.10f;
     private static final float OOB_KILL_TIME = 1f;
 
     private MovementInputListener movement;
@@ -44,7 +44,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
     private Map<Body, Vector2> contacts = new HashMap<>();
     private float oobTime, stateTime, dampingTime;
 
-    public PlayerActor(Box2dWorld world, Vector2 spawn) {
+    public PlayerActor(GameWorld world, Vector2 spawn) {
         super(world, spawn, false);
         setUseRotation(false);
         setScale(4, 2.5f);
@@ -72,7 +72,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
         boolean released = checkRelease(jump || isLooselyAttached());
         if (released) {
             if (threadType != null) {
-                startBuild = ((GameWorld)world).createAttachedPoint(body.getPosition(), RADIUS, body);
+                startBuild = world.createAttachedPoint(body.getPosition(), RADIUS, body);
             } else {
                 startBuild = null;
             }
@@ -89,7 +89,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
     }
 
     private void checkOOB(float delta) {
-        boolean outOfBounds = !((GameWorld)world).getLevel().getBoundingBox().contains(body.getPosition());
+        boolean outOfBounds = !world.getLevel().getBoundingBox().contains(body.getPosition());
         if (outOfBounds) {
             oobTime += delta;
         } else {
@@ -121,7 +121,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
     }
 
     private void jump(float delta) {
-        Vector2 jumpImpulse = ((GameWorld)world).getMouseTarget().cpy().sub(body.getPosition());
+        Vector2 jumpImpulse = world.getMouseTarget().cpy().sub(body.getPosition());
         jumpImpulse = jumpImpulse.scl(JUMP_STRENGTH).clamp(JUMP_MIN, JUMP_MAX);
         System.out.println(jumpImpulse.len());
         body.applyLinearImpulse(jumpImpulse, body.getPosition(), true);
@@ -147,6 +147,8 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
             attachJoints.add(world.box2dWorld.createJoint(attachJointDef));
             createThread(attachJointDef.bodyB, attachJointDef.bodyB.getWorldPoint(attachJointDef.localAnchorB));
             attachJointDef = null;
+            dampingTime = stateTime;
+            world.startNoBreakMode();
         }
         return false;
     }
@@ -183,16 +185,13 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        TextureRegion frame = Resource.GFX.spiderIdle.getKeyFrame(stateTime);
+        Animation anim = attachJoints.isEmpty() ? Resource.GFX.spiderJump: Resource.GFX.spiderIdle;
+        TextureRegion frame = anim.getKeyFrame(stateTime);
         drawRegion(batch, frame);
     }
 
     public void setJump(boolean jump) {
         this.jump = jump;
-    }
-
-    public void setBuild(boolean build) {
-        //
     }
 
     public void setThreadType(ThreadType threadType) {
@@ -207,7 +206,7 @@ public class PlayerActor extends ShapeActor implements CollisionListener {
 
     private ThreadActor createThread(Body other, Vector2 attachPoint) {
         if (startBuild != null && startBuild.getAbsolutePos().dst(attachPoint) > 0.5f) {
-            ThreadActor result = ((GameWorld)world).createThread(startBuild.getAbsolutePos(), attachPoint, threadType);
+            ThreadActor result = world.createThread(startBuild.getAbsolutePos(), attachPoint, threadType);
             startBuild = null;
             dampingTime = stateTime;
             return result;

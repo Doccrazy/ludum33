@@ -2,15 +2,15 @@ package de.doccrazy.ld33.game.actor;
 
 import com.badlogic.gdx.math.Vector2;
 
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class FloorActor extends ShapeActor {
+public class FloorActor extends ShapeActor<GameWorld> {
 	private Vector2 size;
 
-	public FloorActor(Box2dWorld world, Vector2 spawn, Vector2 size) {
+	public FloorActor(GameWorld world, Vector2 spawn, Vector2 size) {
 		super(world, spawn, true);
 		this.size = size;
 	}

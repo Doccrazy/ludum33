@@ -58,14 +58,6 @@ public class GameInputListener extends InputListener {
             return true;
             //start = world.createAttachedPoint(new Vector2(x, y), 0.02f);
         }
-        if (button == 1) {
-            world.getPlayer().setBuild(true);
-            return true;
-            /*Vector2 end = new Vector2(x, y);
-            if (start != null && start.getAbsolutePos().dst(end) > 0.5f) {
-                world.createThread(start.getAbsolutePos(), end, threadType);
-            }*/
-        }
         if (button == 2) {
             world.createFly(new Vector2(x, y));
         }
@@ -79,9 +71,6 @@ public class GameInputListener extends InputListener {
         }
         if (button == 0) {
             world.getPlayer().setJump(false);
-        }
-        if (button == 1) {
-            world.getPlayer().setBuild(false);
         }
     }
 

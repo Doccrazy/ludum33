@@ -7,16 +7,16 @@ import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
 import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.GameRules;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class CounterweightActor extends ShapeActor {
+public class CounterweightActor extends ShapeActor<GameWorld> {
     private static final float RADIUS = 0.2f;
     private Body attachTo;
 
-    public CounterweightActor(Box2dWorld world, Vector2 spawn, Body attachTo) {
+    public CounterweightActor(GameWorld world, Vector2 spawn, Body attachTo) {
         super(world, spawn, false);
         this.attachTo = attachTo;
     }

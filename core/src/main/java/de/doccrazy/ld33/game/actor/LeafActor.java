@@ -9,16 +9,15 @@ import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class LeafActor extends ShapeActor {
+public class LeafActor extends ShapeActor<GameWorld> {
     private static final float RADIUS = 0.1f;
     private float noise;
 
-    public LeafActor(Box2dWorld world) {
-        super(world, new Vector2(MathUtils.random(((GameWorld)world).getLevel().getBoundingBox().width),
-                MathUtils.random(((GameWorld)world).getLevel().getBoundingBox().height)), false);
+    public LeafActor(GameWorld world) {
+        super(world, new Vector2(MathUtils.random(world.getLevel().getBoundingBox().width),
+                MathUtils.random(world.getLevel().getBoundingBox().height)), false);
         setzOrder(100);
         setScale(0.25f);
         noise = MathUtils.random(-0.01f, 0.01f);
@@ -39,7 +38,7 @@ public class LeafActor extends ShapeActor {
     @Override
     protected void doAct(float delta) {
         body.applyForce(noise, 0.25f, 0, 0, true);
-        Rectangle bb = ((GameWorld)world).getLevel().getBoundingBox();
+        Rectangle bb = world.getLevel().getBoundingBox();
         if (body.getPosition().x > bb.width + 2*RADIUS) {
             body.setTransform(-2*RADIUS, body.getPosition().y, body.getAngle());
         }

@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import de.doccrazy.ld33.game.ui.UiRoot;
 import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.BaseGameScreen;
-import de.doccrazy.shared.game.world.Box2dWorld;
 
 public class GameScreen extends BaseGameScreen<GameWorld, GameRenderer> {
 
@@ -15,7 +14,7 @@ public class GameScreen extends BaseGameScreen<GameWorld, GameRenderer> {
 	}
 
 	@Override
-	protected GameRenderer createRenderer(Box2dWorld world) {
+	protected GameRenderer createRenderer(GameWorld world) {
 		return new GameRenderer(world);
 	}
 

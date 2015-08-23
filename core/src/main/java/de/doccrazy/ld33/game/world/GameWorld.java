@@ -17,7 +17,7 @@ import de.doccrazy.shared.game.actor.WorldActor;
 import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.GameState;
 
-public class GameWorld extends Box2dWorld {
+public class GameWorld extends Box2dWorld<GameWorld> {
 
     private PlayerActor player;
     private int score;
@@ -26,12 +26,14 @@ public class GameWorld extends Box2dWorld {
     private Vector2 mouseTarget;
     private Level level;
     private boolean renderForces;
+    private float noBreakTime;
 
 	public GameWorld() {
         super(GameRules.GRAVITY);
         RayHandler.useDiffuseLight(true);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void doTransition(GameState newState) {
         switch (newState) {
@@ -41,7 +43,7 @@ public class GameWorld extends Box2dWorld {
                 //addActor(players[1] = new PlayerActor(this, new Vector2(GameRules.LEVEL_WIDTH-2, 0.25f), 1).flip());
                 //addActor(new FloorActor(this, new Vector2(0, 5.5f), new Vector2(1, 1)));
                 //addActor(new FloorActor(this, new Vector2(11, 5.5f), new Vector2(1, 1)));
-                addActor((WorldActor)(level = new Level2Actor(this)));
+                addActor((WorldActor<GameWorld>)(level = new Level2Actor(this)));
                 //addActor(new PunchingBagActor(this, new Vector2(8, 2.5f)));
                 //addActor(new DummyActor(this, new Vector2(8, 0.0f)));
                 addActor(player = new PlayerActor(this, level.getSpawn()));
@@ -73,6 +75,7 @@ public class GameWorld extends Box2dWorld {
 
     @Override
     protected void doUpdate(float delta) {
+        noBreakTime += delta;
     	switch (getGameState()) {
     	case GAME:
 	    	/*if (players[1].isDead()) {
@@ -153,5 +156,13 @@ public class GameWorld extends Box2dWorld {
 
     public void setRenderForces(boolean renderForces) {
         this.renderForces = renderForces;
+    }
+
+    public void startNoBreakMode() {
+        noBreakTime = -0.5f;
+    }
+
+    public boolean isNoBreakMode() {
+        return noBreakTime < 0;
     }
 }

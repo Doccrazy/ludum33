@@ -8,13 +8,13 @@ import com.badlogic.gdx.physics.box2d.Body;
 
 import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.ThreadType;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.base.CollisionListener;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class FlyActor extends ShapeActor implements CollisionListener {
+public class FlyActor extends ShapeActor<GameWorld> implements CollisionListener {
     private static final float RADIUS = 0.1f;
     private static final float Z_SPEED = 2f;
     private static final float SCALE = 3f;
@@ -25,7 +25,7 @@ public class FlyActor extends ShapeActor implements CollisionListener {
     private Body threadBody;
     private Vector2 threadContactPoint;
 
-    public FlyActor(Box2dWorld world, Vector2 spawn) {
+    public FlyActor(GameWorld world, Vector2 spawn) {
         super(world, spawn, false);
     }
 

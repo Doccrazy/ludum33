@@ -23,6 +23,7 @@ public class GfxResources extends ResourcesBase {
     public Sprite counterweight = atlas.createSprite("counterweight");
     public Sprite dustMote = atlas.createSprite("dustMote");
     public Animation spiderIdle = new Animation(0.016f, atlas.findRegions("spider_idle/spider_idle"), PlayMode.LOOP);
+    public Animation spiderJump = new Animation(0.016f, atlas.findRegions("spider_jump/spider_jump"), PlayMode.LOOP);
 
     public GfxResources() {
         super("game.atlas");

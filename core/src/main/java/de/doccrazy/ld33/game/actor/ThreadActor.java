@@ -17,12 +17,11 @@ import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.WorldActor;
 import de.doccrazy.shared.game.base.PolyLineRenderer;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 import net.dermetfan.gdx.physics.box2d.Chain;
 import net.dermetfan.gdx.physics.box2d.Chain.Connection;
 
-public class ThreadActor extends WorldActor {
+public class ThreadActor extends WorldActor<GameWorld> {
     private static float RADIUS = 0.05f;
     private Vector2 start, end;
     private List<Chain> chains = new ArrayList<>();
@@ -30,7 +29,7 @@ public class ThreadActor extends WorldActor {
     private float[] colors = new float[1000];
     private float stateTime;
 
-    public ThreadActor(Box2dWorld world, Vector2 start, Vector2 end, ThreadType threadType) {
+    public ThreadActor(GameWorld world, Vector2 start, Vector2 end, ThreadType threadType) {
         super(world);
         this.start = start;
         this.end = end;
@@ -40,8 +39,8 @@ public class ThreadActor extends WorldActor {
     @Override
     protected void init() {
         super.init();
-        Body attachStart = world.bodyAt(start, RADIUS/2f, ((GameWorld)world).getPlayer().getBody());
-        Body attachEnd = world.bodyAt(end, RADIUS/2f, ((GameWorld)world).getPlayer().getBody());
+        Body attachStart = world.bodyAt(start, RADIUS/2f, world.getPlayer().getBody());
+        Body attachEnd = world.bodyAt(end, RADIUS/2f, world.getPlayer().getBody());
 
         Body startBody = createLinkBody(start).build(world);
         Body endBody = createLinkBody(end).build(world);
@@ -106,7 +105,7 @@ public class ThreadActor extends WorldActor {
                 points.add(body.getPosition());
             }
             float[] colors = this.colors;
-            if (((GameWorld)world).isRenderForces()) {
+            if (world.isRenderForces()) {
                 for (int i = 0; i < chain.getSegments().size; i++) {
                     Float force = null;
                     if (i == 0) {
@@ -176,7 +175,7 @@ public class ThreadActor extends WorldActor {
                 Joint joint = chain.getConnection(i).joints.get(0);
                 float force = joint.getReactionForce(invDt).len2();
                 joint.setUserData(force);
-                if (force > threadType.getMaxForce() && stateTime > 0.3f) {
+                if (!world.isNoBreakMode() && force > threadType.getMaxForce() && stateTime > 0.3f) {
                     newChains.add(chain.split(i));
                     break;
                 }

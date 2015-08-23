@@ -6,17 +6,17 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
 import de.doccrazy.ld33.core.Resource;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.ShapeActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class CaughtFlyActor extends ShapeActor {
+public class CaughtFlyActor extends ShapeActor<GameWorld> {
     private static final float RADIUS = 0.1f;
     private Body threadBody;
     private Vector2 threadContactPoint;
 
-    public CaughtFlyActor(Box2dWorld world, Vector2 spawn, Body threadBody, Vector2 threadContactPoint) {
+    public CaughtFlyActor(GameWorld world, Vector2 spawn, Body threadBody, Vector2 threadContactPoint) {
         super(world, spawn, false);
         this.threadBody = threadBody;
         this.threadContactPoint = threadContactPoint;

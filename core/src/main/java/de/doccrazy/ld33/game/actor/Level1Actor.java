@@ -13,16 +13,16 @@ import box2dLight.PointLight;
 import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.data.ThreadType;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.Box2dActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class Level1Actor extends Box2dActor implements Level {
+public class Level1Actor extends Box2dActor<GameWorld> implements Level {
     private List<Body> bodies = new ArrayList<>();
     private final Rectangle boundingBox = new Rectangle(0, 0, GameRules.LEVEL_WIDTH, GameRules.LEVEL_HEIGHT*2);
 
-    public Level1Actor(Box2dWorld world) {
+    public Level1Actor(GameWorld world) {
         super(world);
         bodies.add(BodyBuilder.forStatic(new Vector2(0, 0))
                 .fixShape(ShapeBuilder.boxAbs(2.6f, GameRules.LEVEL_HEIGHT)).build(world));

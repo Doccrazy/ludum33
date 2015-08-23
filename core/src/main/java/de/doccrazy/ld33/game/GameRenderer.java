@@ -13,9 +13,8 @@ import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.game.actor.PlayerActor;
 import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.BaseGameRenderer;
-import de.doccrazy.shared.game.world.Box2dWorld;
 
-public class GameRenderer extends BaseGameRenderer {
+public class GameRenderer extends BaseGameRenderer<GameWorld> {
 	private static final float CAM_PPS = 5f;
 
     private Scaling bgScaling = Scaling.fill;
@@ -24,7 +23,7 @@ public class GameRenderer extends BaseGameRenderer {
 	private float camY;
     private boolean animateCamera;
 
-    public GameRenderer(Box2dWorld world) {
+    public GameRenderer(GameWorld world) {
         super(world, new Vector2(GameRules.LEVEL_WIDTH, GameRules.LEVEL_WIDTH * 9f / 16f));
     }
 
@@ -44,8 +43,8 @@ public class GameRenderer extends BaseGameRenderer {
 
 	@Override
 	protected void beforeRender() {
-	    gameViewport.x = ((GameWorld)world).getLevel().getBoundingBox().width;
-	    gameViewport.y = ((GameWorld)world).getLevel().getBoundingBox().height;
+	    gameViewport.x = world.getLevel().getBoundingBox().width;
+	    gameViewport.y = world.getLevel().getBoundingBox().height;
 	    //zoom = MathUtils.clamp(zoom + zoomDelta*0.02f, 1f, 2f);
 
         camera.position.x = gameViewport.x / 2;
