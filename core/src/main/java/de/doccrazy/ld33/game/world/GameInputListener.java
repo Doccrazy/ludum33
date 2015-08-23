@@ -12,7 +12,7 @@ public class GameInputListener extends InputListener {
     private GameWorld world;
     private UiRoot root;
     private AttachedPoint start;
-    private ThreadType threadType = ThreadType.STRUCTURE;
+    //private ThreadType threadType = ThreadType.STRUCTURE;
 
     public GameInputListener(UiRoot root) {
         this.root = root;
@@ -24,13 +24,21 @@ public class GameInputListener extends InputListener {
     public boolean keyTyped(InputEvent event, char character) {
         switch (character) {
         case '1':
-            threadType = ThreadType.STRUCTURE;
+            //threadType = ThreadType.STRUCTURE;
+            world.getPlayer().setThreadType(ThreadType.STRUCTURE);
             break;
         case '2':
-            threadType = ThreadType.STICKY;
+            //threadType = ThreadType.STICKY;
+            world.getPlayer().setThreadType(ThreadType.STICKY);
             break;
         }
         return false;
+    }
+
+    @Override
+    public boolean mouseMoved(InputEvent event, float x, float y) {
+        world.setMouseTarget(new Vector2(x, y));
+        return true;
     }
 
     @Override
@@ -39,18 +47,35 @@ public class GameInputListener extends InputListener {
             return false;
         }
         if (button == 0) {
-            start = world.createAttachedPoint(new Vector2(x, y), 0.02f);
+            world.getPlayer().setJump(true);
+            return true;
+            //start = world.createAttachedPoint(new Vector2(x, y), 0.02f);
         }
         if (button == 1) {
-            Vector2 end = new Vector2(x, y);
+            world.getPlayer().setBuild(true);
+            return true;
+            /*Vector2 end = new Vector2(x, y);
             if (start != null && start.getAbsolutePos().dst(end) > 0.5f) {
                 world.createThread(start.getAbsolutePos(), end, threadType);
-            }
+            }*/
         }
         if (button == 2) {
             world.createFly(new Vector2(x, y));
         }
         return false;
+    }
+
+    @Override
+    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        if (world.getGameState() != GameState.GAME) {
+            return;
+        }
+        if (button == 0) {
+            world.getPlayer().setJump(false);
+        }
+        if (button == 1) {
+            world.getPlayer().setBuild(false);
+        }
     }
 
     public void reset() {

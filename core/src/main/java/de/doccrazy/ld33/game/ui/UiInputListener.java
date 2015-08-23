@@ -16,8 +16,7 @@ public class UiInputListener extends InputListener {
 
 	@Override
     public boolean keyDown(InputEvent event, int keycode) {
-		if (keycode == Keys.ENTER
-				&& (root.getWorld().getGameState() == GameState.INIT || root.getWorld().isWaitingForRound())) {
+		if (keycode == Keys.ENTER) {
 			root.getWorld().transition(GameState.INIT);
 			root.getWorld().transition(GameState.PRE_GAME);
 		}

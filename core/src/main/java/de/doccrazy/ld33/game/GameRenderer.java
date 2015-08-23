@@ -29,7 +29,7 @@ public class GameRenderer extends BaseGameRenderer {
 
     @Override
     protected void init() {
-        world.rayHandler.setAmbientLight(new Color(0.5f, 0.5f, 0.5f, 0.5f));
+        world.rayHandler.setAmbientLight(new Color(0.6f, 0.6f, 0.6f, 1f));
     }
 
     @Override

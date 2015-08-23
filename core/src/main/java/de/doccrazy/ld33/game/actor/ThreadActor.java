@@ -13,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.joints.DistanceJointDef;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
 import de.doccrazy.ld33.data.ThreadType;
+import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.WorldActor;
 import de.doccrazy.shared.game.base.PolyLineRenderer;
 import de.doccrazy.shared.game.world.BodyBuilder;
@@ -39,8 +40,8 @@ public class ThreadActor extends WorldActor {
     @Override
     protected void init() {
         super.init();
-        Body attachStart = world.bodyAt(start, RADIUS/2f);
-        Body attachEnd = world.bodyAt(end, RADIUS/2f);
+        Body attachStart = world.bodyAt(start, RADIUS/2f, ((GameWorld)world).getPlayer().getBody());
+        Body attachEnd = world.bodyAt(end, RADIUS/2f, ((GameWorld)world).getPlayer().getBody());
 
         Body startBody = createLinkBody(start).build(world);
         Body endBody = createLinkBody(end).build(world);
@@ -72,7 +73,7 @@ public class ThreadActor extends WorldActor {
         jointDef.localAnchorB.x = 0;
         jointDef.length = radius*2 + spacing/2f;
         jointDef.frequencyHz = 60;
-        jointDef.dampingRatio = 0.6f;
+        jointDef.dampingRatio = 0.8f;
         Chain.DefBuilder builder = new Chain.DefBuilder(world.box2dWorld, null, null, jointDef);
         Chain chain = new Chain(builder);
         chain.add(startBody);
@@ -82,7 +83,7 @@ public class ThreadActor extends WorldActor {
     }
 
     private BodyBuilder createLinkBody(Vector2 pos) {
-        return BodyBuilder.forDynamic(pos).damping(0.5f, 2f).gravityScale(0.33f).userData(this)
+        return BodyBuilder.forDynamic(pos).damping(2f, 2f).gravityScale(0.25f).userData(this)
                 .fixShape(ShapeBuilder.circle(RADIUS)).fixSensor().fixProps(3f, 0.1f, 0.1f);
     }
 

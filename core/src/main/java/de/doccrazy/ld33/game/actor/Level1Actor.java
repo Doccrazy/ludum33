@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
@@ -18,6 +19,7 @@ import de.doccrazy.shared.game.world.ShapeBuilder;
 
 public class Level1Actor extends Box2dActor {
     private List<Body> bodies = new ArrayList<>();
+    private final Rectangle boundingBox = new Rectangle(0, 0, GameRules.LEVEL_WIDTH, GameRules.LEVEL_HEIGHT*2);
 
     public Level1Actor(Box2dWorld world) {
         super(world);
@@ -57,6 +59,10 @@ public class Level1Actor extends Box2dActor {
         for (Body body : bodies) {
             world.box2dWorld.destroyBody(body);
         }
+    }
+
+    public Rectangle getBoundingBox() {
+        return boundingBox;
     }
 
 }

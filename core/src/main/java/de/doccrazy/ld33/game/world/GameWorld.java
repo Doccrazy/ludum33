@@ -16,12 +16,14 @@ import de.doccrazy.shared.game.world.GameState;
 
 public class GameWorld extends Box2dWorld {
 
-    private PlayerActor[] players;
-    private int[] scores = new int[2];
-	private boolean multiplayer, waitingForRound, gameOver;
+    private PlayerActor player;
+    private int score;
+	private boolean waitingForRound, gameOver;
 	private int round;
 	private boolean partInit;
 	private GamepadMovementListener moveListener;
+    private Vector2 mouseTarget;
+    private Level1Actor level;
 
 	public GameWorld() {
         super(GameRules.GRAVITY);
@@ -34,14 +36,13 @@ public class GameWorld extends Box2dWorld {
             case INIT:
             	//Resource.MUSIC.intro.play();
             	waitingForRound = false;
-            	players = new PlayerActor[2];
-            	//addActor(players[0] = new PlayerActor(this, new Vector2(2, 0.25f), 0));
                 //addActor(players[1] = new PlayerActor(this, new Vector2(GameRules.LEVEL_WIDTH-2, 0.25f), 1).flip());
                 //addActor(new FloorActor(this, new Vector2(0, 5.5f), new Vector2(1, 1)));
                 //addActor(new FloorActor(this, new Vector2(11, 5.5f), new Vector2(1, 1)));
-                addActor(new Level1Actor(this));
+                addActor(level = new Level1Actor(this));
                 //addActor(new PunchingBagActor(this, new Vector2(8, 2.5f)));
                 //addActor(new DummyActor(this, new Vector2(8, 0.0f)));
+                addActor(player = new PlayerActor(this, new Vector2(1.5f, 5f)));
                 break;
             case PRE_GAME:
             	round++;
@@ -50,8 +51,8 @@ public class GameWorld extends Box2dWorld {
             	//Resource.MUSIC.intro.stop();
             	//Resource.MUSIC.victory.stop();
             	//Resource.MUSIC.fight[(int)(Math.random()*Resource.MUSIC.fight.length)].play();
-                //players[0].setupKeyboardControl();
-                stage.setKeyboardFocus(players[0]);
+                player.setupKeyboardControl();
+                stage.setKeyboardFocus(player);
                 break;
             case VICTORY:
             case DEFEAT:
@@ -79,28 +80,18 @@ public class GameWorld extends Box2dWorld {
 	    	}*/
     		break;
     	case PRE_GAME:
-    		if (getStateTime() > 0.5f) {
-    			transition(GameState.GAME);
-    		}
+			transition(GameState.GAME);
     		break;
 		default:
     	}
     }
 
-    public PlayerActor getPlayer(int index) {
-		return players[index];
+    public PlayerActor getPlayer() {
+		return player;
 	}
 
-    public String getPlayerName(int index) {
-    	return index > 0 ? (isMultiplayer() ? "P2" : "AI") : "P1";
-    }
-
-    public int getPlayerScore(int index) {
-    	return scores[index];
-    }
-
-    public boolean isMultiplayer() {
-    	return multiplayer;
+    public int getPlayerScore() {
+    	return score;
     }
 
     public int getRound() {
@@ -119,8 +110,8 @@ public class GameWorld extends Box2dWorld {
     	return waitingForRound;
     }
 
-    public AttachedPoint createAttachedPoint(Vector2 pos, float radius) {
-        Body body = bodyAt(pos, radius);
+    public AttachedPoint createAttachedPoint(Vector2 pos, float radius, Body exclude) {
+        Body body = bodyAt(pos, radius, exclude);
         if (body != null) {
             return new AttachedPoint(body, body.getLocalPoint(pos));
         }
@@ -133,5 +124,17 @@ public class GameWorld extends Box2dWorld {
 
     public void createFly(Vector2 spawn) {
         addActor(new FlyActor(this, spawn));
+    }
+
+    public void setMouseTarget(Vector2 mouseTarget) {
+        this.mouseTarget = mouseTarget;
+    }
+
+    public Vector2 getMouseTarget() {
+        return mouseTarget;
+    }
+
+    public Level1Actor getLevel() {
+        return level;
     }
 }

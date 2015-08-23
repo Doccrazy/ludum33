@@ -14,6 +14,7 @@ public class GfxResources extends ResourcesBase {
     public Texture threadSticky = textureWrap("thread-sticky.png");
     public Texture level1fg = texture("level1-fg.png");
     public Sprite[] fly = createBlurLevels(atlas.createSprite("fly"), 16);
+    public Sprite dummy = atlas.createSprite("dummy");
 
     public GfxResources() {
         super("game.atlas");
