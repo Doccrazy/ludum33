@@ -9,3 +9,4 @@ bin
 build
 local.properties
 Thumbs.db
+hs_err_pid*.log

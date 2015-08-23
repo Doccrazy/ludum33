@@ -5,6 +5,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 
 import box2dLight.RayHandler;
 import de.doccrazy.ld33.data.GameRules;
+import de.doccrazy.ld33.data.ThreadType;
+import de.doccrazy.ld33.game.actor.FlyActor;
 import de.doccrazy.ld33.game.actor.Level1Actor;
 import de.doccrazy.ld33.game.actor.PlayerActor;
 import de.doccrazy.ld33.game.actor.ThreadActor;
@@ -125,7 +127,11 @@ public class GameWorld extends Box2dWorld {
         return null;
     }
 
-    public void createThread(Vector2 start, Vector2 end) {
-        addActor(new ThreadActor(this, start, end));
+    public void createThread(Vector2 start, Vector2 end, ThreadType threadType) {
+        addActor(new ThreadActor(this, start, end, threadType));
+    }
+
+    public void createFly(Vector2 spawn) {
+        addActor(new FlyActor(this, spawn));
     }
 }
