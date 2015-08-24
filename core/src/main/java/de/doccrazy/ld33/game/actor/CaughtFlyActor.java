@@ -47,7 +47,7 @@ public class CaughtFlyActor extends ShapeActor<GameWorld> {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        drawRegion(batch, Resource.GFX.fly[0]);
+        drawRegion(batch, Resource.GFX.fly1[0].getKeyFrame(0));
         super.draw(batch, parentAlpha);
     }
 }

@@ -4,10 +4,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 
+import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.ui.UiRoot;
 import de.doccrazy.shared.game.world.GameState;
-import net.dermetfan.gdx.utils.ArrayUtils;
 
 public class GameInputListener extends InputListener {
     private GameWorld world;
@@ -27,17 +27,18 @@ public class GameInputListener extends InputListener {
             world.getPlayer().setThreadType(null);
             break;
         case '2':
-            type = ThreadType.STICKY;
+            type = ThreadType.STRUCTURE;
             break;
         case '3':
-            type = ThreadType.STRUCTURE;
+            type = ThreadType.STICKY;
             break;
         case '4':
             type = ThreadType.COUNTERWEIGHT;
             break;
         }
-        if (type != null && ArrayUtils.contains(world.getLevel().getAllowedThreads(), type, false)) {
+        if (type != null) {
             world.getPlayer().setThreadType(type);
+            Resource.SOUND.select.play();
         }
         return false;
     }
@@ -59,7 +60,7 @@ public class GameInputListener extends InputListener {
             //start = world.createAttachedPoint(new Vector2(x, y), 0.02f);
         }
         if (button == 2) {
-            world.createFly(new Vector2(x, y));
+            //world.createFly(new Vector2(x, y));
         }
         return false;
     }
@@ -75,6 +76,5 @@ public class GameInputListener extends InputListener {
     }
 
     public void reset() {
-
     }
 }

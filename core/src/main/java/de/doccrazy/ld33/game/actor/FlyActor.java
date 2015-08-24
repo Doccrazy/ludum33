@@ -1,5 +1,6 @@
 package de.doccrazy.ld33.game.actor;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
@@ -17,7 +18,7 @@ import de.doccrazy.shared.game.world.ShapeBuilder;
 public class FlyActor extends ShapeActor<GameWorld> implements CollisionListener {
     private static final float RADIUS = 0.1f;
     private static final float Z_SPEED = 2f;
-    private static final float SCALE = 3f;
+    private static final float SCALE = 2f;
 
     private float stateTime;
     private float startZ = -3f, endZ = 3f, zSpeed = Z_SPEED;
@@ -51,6 +52,7 @@ public class FlyActor extends ShapeActor<GameWorld> implements CollisionListener
         if (threadBody != null) {
             kill();
             world.addActor(new CaughtFlyActor(world, body.getPosition(), threadBody, threadContactPoint));
+            Resource.SOUND.twang[MathUtils.random(Resource.SOUND.twang.length-1)].play();
         }
         if (z > endZ) {
             kill();
@@ -63,7 +65,10 @@ public class FlyActor extends ShapeActor<GameWorld> implements CollisionListener
         float zDist = Math.abs(progress - 0.5f) * 2f;
         setScale(SCALE * MathUtils.lerp(1.5f, 0.5f, progress));
         batch.setColor(1, 1, 1, Interpolation.exp10In.apply(1f, 0f, zDist));
-        drawRegion(batch, Resource.GFX.fly[(int)(zDist * Resource.GFX.fly.length)]);
+
+        Animation anim = Resource.GFX.fly1[(int)(zDist * Resource.GFX.fly1.length)];
+        anim.getKeyFrame(stateTime);
+        drawRegion(batch, anim.getKeyFrame(stateTime));
         batch.setColor(1, 1, 1, 1);
     }
 

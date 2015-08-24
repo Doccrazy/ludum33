@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -13,11 +14,11 @@ import box2dLight.PointLight;
 import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.world.GameWorld;
-import de.doccrazy.shared.game.actor.Box2dActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
+import de.doccrazy.shared.game.world.GameState;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class Level2Actor extends Box2dActor<GameWorld> implements Level {
+public class Level2Actor extends Level {
     private static final float SCALE = 9f/12f;
     private List<Body> bodies = new ArrayList<>();
     private final Rectangle boundingBox = new Rectangle(0, 0, 9, 9*9f/16f);
@@ -38,6 +39,17 @@ public class Level2Actor extends Box2dActor<GameWorld> implements Level {
         //light(7f, 2f);
         //light(3.8f, 6f);
         //light(7f, 6f);
+
+        world.addAmmo(ThreadType.STRUCTURE, 2);
+        world.addAmmo(ThreadType.STICKY, 10);
+
+        task.in(0.5f, Void -> {}).thenEvery(1f, Void -> {
+            if (world.getGameState() == GameState.GAME && MathUtils.randomBoolean(0.25f)) {
+                world.addActor(new FlyActor(world, new Vector2(MathUtils.randomBoolean() ? MathUtils.random(2f, 4f) : MathUtils.random(5f, 7f),
+                        MathUtils.random(1f, 4f))));
+            }
+        });
+        Resource.MUSIC.music2.play();
     }
 
     private void light(float x, float y) {
@@ -66,6 +78,7 @@ public class Level2Actor extends Box2dActor<GameWorld> implements Level {
         for (Body body : bodies) {
             world.box2dWorld.destroyBody(body);
         }
+        Resource.MUSIC.music2.stop();
     }
 
     @Override
@@ -79,7 +92,12 @@ public class Level2Actor extends Box2dActor<GameWorld> implements Level {
     }
 
     @Override
-    public ThreadType[] getAllowedThreads() {
-        return new ThreadType[]{ThreadType.STICKY};
+    public int getScoreGoal() {
+        return 3;
+    }
+
+    @Override
+    public float getTime() {
+        return 120;
     }
 }

@@ -6,12 +6,14 @@ import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.joints.DistanceJointDef;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
+import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.world.GameWorld;
 import de.doccrazy.shared.game.actor.WorldActor;
@@ -177,6 +179,7 @@ public class ThreadActor extends WorldActor<GameWorld> {
                 joint.setUserData(force);
                 if (!world.isNoBreakMode() && force > threadType.getMaxForce() && stateTime > 0.3f) {
                     newChains.add(chain.split(i));
+                    Resource.SOUND.breakThread[MathUtils.random(Resource.SOUND.breakThread.length-1)].play();
                     break;
                 }
             }

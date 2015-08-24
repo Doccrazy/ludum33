@@ -1,9 +1,14 @@
 package de.doccrazy.ld33.game.world;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
 import box2dLight.RayHandler;
+import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.actor.FlyActor;
@@ -13,37 +18,47 @@ import de.doccrazy.ld33.game.actor.Level2Actor;
 import de.doccrazy.ld33.game.actor.PlayerActor;
 import de.doccrazy.ld33.game.actor.ThreadActor;
 import de.doccrazy.ld33.game.actor.WindActor;
-import de.doccrazy.shared.game.actor.WorldActor;
 import de.doccrazy.shared.game.world.Box2dWorld;
 import de.doccrazy.shared.game.world.GameState;
 
 public class GameWorld extends Box2dWorld<GameWorld> {
 
     private PlayerActor player;
-    private int score;
 	private boolean waitingForRound, gameOver;
 	private int round;
     private Vector2 mouseTarget;
     private Level level;
     private boolean renderForces;
     private float noBreakTime;
+    private Map<ThreadType, Integer> ammo;
+    private Class<? extends Level> nextLevel;
 
 	public GameWorld() {
         super(GameRules.GRAVITY);
         RayHandler.useDiffuseLight(true);
+        transition(GameState.PRE_GAME);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void doTransition(GameState newState) {
         switch (newState) {
             case INIT:
+                ammo = new HashMap<>();
             	//Resource.MUSIC.intro.play();
             	waitingForRound = false;
                 //addActor(players[1] = new PlayerActor(this, new Vector2(GameRules.LEVEL_WIDTH-2, 0.25f), 1).flip());
                 //addActor(new FloorActor(this, new Vector2(0, 5.5f), new Vector2(1, 1)));
                 //addActor(new FloorActor(this, new Vector2(11, 5.5f), new Vector2(1, 1)));
-                addActor((WorldActor<GameWorld>)(level = new Level2Actor(this)));
+            	if (nextLevel == null) {
+            	    nextLevel = Level2Actor.class;
+            	}
+                try {
+                    level = nextLevel.getConstructor(GameWorld.class).newInstance(this);
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                    throw new RuntimeException(e);
+                }
+                addActor(level);
                 //addActor(new PunchingBagActor(this, new Vector2(8, 2.5f)));
                 //addActor(new DummyActor(this, new Vector2(8, 0.0f)));
                 addActor(player = new PlayerActor(this, level.getSpawn()));
@@ -78,6 +93,12 @@ public class GameWorld extends Box2dWorld<GameWorld> {
         noBreakTime += delta;
     	switch (getGameState()) {
     	case GAME:
+    	    if (player.isDead() || getRemainingTime() <= 0) {
+    	        transition(GameState.DEFEAT);
+    	    }
+    	    if (getScore() >= level.getScoreGoal()) {
+    	        transition(GameState.VICTORY);
+    	    }
 	    	/*if (players[1].isDead()) {
 	    		scores[0]++;
 	    		transition(GameState.VICTORY);
@@ -90,7 +111,9 @@ public class GameWorld extends Box2dWorld<GameWorld> {
 	    	}*/
     		break;
     	case PRE_GAME:
-			transition(GameState.GAME);
+            if (getStateTime() > 0.5f) {
+                transition(GameState.GAME);
+            }
     		break;
 		default:
     	}
@@ -99,10 +122,6 @@ public class GameWorld extends Box2dWorld<GameWorld> {
     public PlayerActor getPlayer() {
 		return player;
 	}
-
-    public int getPlayerScore() {
-    	return score;
-    }
 
     public int getRound() {
     	return round;
@@ -164,5 +183,31 @@ public class GameWorld extends Box2dWorld<GameWorld> {
 
     public boolean isNoBreakMode() {
         return noBreakTime < 0;
+    }
+
+    public Map<ThreadType, Integer> getAmmo() {
+        return ammo;
+    }
+
+    public void addAmmo(ThreadType type, int amount) {
+        ammo.put(type, ammo.get(type) == null ? amount : ammo.get(type) + amount);
+    }
+
+    public boolean hasAmmo(ThreadType type) {
+        return ammo.get(type) != null && ammo.get(type) > 0;
+    }
+
+    public float getRemainingTime() {
+        return Math.max(0, level.getTime() - (isGameFinished() ? getLastStateTime() : getStateTime()));
+    }
+
+    public void setNextLevel(Class<? extends Level> nextLevel) {
+        this.nextLevel = nextLevel;
+    }
+
+    @Override
+    public void addScore(int value) {
+        super.addScore(value);
+        Resource.SOUND.catchFly.play();
     }
 }

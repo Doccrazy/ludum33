@@ -1,6 +1,6 @@
 apply from: file('../packTextures.gradle')
 
-project.ext.mainClassName = "de.doccrazy.ld31.desktop.DesktopLauncher"
+project.ext.mainClassName = "de.doccrazy.ld33.desktop.DesktopLauncher"
 project.ext.assetsDir = file("../core/assets");
 project.ext.assetsSrcDir = file("../core/assets_src");
 

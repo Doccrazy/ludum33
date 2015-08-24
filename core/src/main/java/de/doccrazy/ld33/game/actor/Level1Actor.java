@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -14,13 +15,13 @@ import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.GameRules;
 import de.doccrazy.ld33.data.ThreadType;
 import de.doccrazy.ld33.game.world.GameWorld;
-import de.doccrazy.shared.game.actor.Box2dActor;
 import de.doccrazy.shared.game.world.BodyBuilder;
+import de.doccrazy.shared.game.world.GameState;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
-public class Level1Actor extends Box2dActor<GameWorld> implements Level {
+public class Level1Actor extends Level {
     private List<Body> bodies = new ArrayList<>();
-    private final Rectangle boundingBox = new Rectangle(0, 0, GameRules.LEVEL_WIDTH, GameRules.LEVEL_HEIGHT*2);
+    private final Rectangle boundingBox = new Rectangle(0, 0, GameRules.LEVEL_WIDTH, GameRules.LEVEL_HEIGHT);
 
     public Level1Actor(GameWorld world) {
         super(world);
@@ -33,10 +34,20 @@ public class Level1Actor extends Box2dActor<GameWorld> implements Level {
         bodies.add(BodyBuilder.forStatic(new Vector2(2.6f, 0))
                 .fixShape(ShapeBuilder.boxAbs(7.1f, 0.4f)).build(world));
 
-        light(3.8f, 2f);
-        light(7f, 2f);
-        light(3.8f, 6f);
-        light(7f, 6f);
+        light(4.2f, 2f);
+        light(8f, 2f);
+        light(4.2f, 5.5f);
+        light(8f, 5.5f);
+
+        world.addAmmo(ThreadType.STRUCTURE, 6);
+        world.addAmmo(ThreadType.STICKY, 25);
+
+        task.in(0.5f, Void -> {}).thenEvery(1f, Void -> {
+            if (world.getGameState() == GameState.GAME && MathUtils.randomBoolean(1.25f)) {
+                world.addActor(new FlyActor(world, new Vector2(MathUtils.random(3f, 9.3f), MathUtils.random(1f, GameRules.LEVEL_HEIGHT - 1f))));
+            }
+        });
+        Resource.MUSIC.music1.play();
     }
 
     private void light(float x, float y) {
@@ -47,6 +58,7 @@ public class Level1Actor extends Box2dActor<GameWorld> implements Level {
 
     @Override
     protected void doAct(float delta) {
+
     }
 
     @Override
@@ -60,6 +72,7 @@ public class Level1Actor extends Box2dActor<GameWorld> implements Level {
         for (Body body : bodies) {
             world.box2dWorld.destroyBody(body);
         }
+        Resource.MUSIC.music1.stop();
     }
 
     @Override
@@ -73,8 +86,13 @@ public class Level1Actor extends Box2dActor<GameWorld> implements Level {
     }
 
     @Override
-    public ThreadType[] getAllowedThreads() {
-        return new ThreadType[]{ThreadType.STRUCTURE, ThreadType.STICKY};
+    public int getScoreGoal() {
+        return 20;
+    }
+
+    @Override
+    public float getTime() {
+        return 120;
     }
 
 }

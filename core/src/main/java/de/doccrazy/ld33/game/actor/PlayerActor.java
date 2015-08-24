@@ -9,12 +9,12 @@ import java.util.Map.Entry;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.utils.Timer;
 
 import de.doccrazy.ld33.core.Resource;
 import de.doccrazy.ld33.data.ThreadType;
@@ -25,7 +25,6 @@ import de.doccrazy.shared.game.base.CollisionListener;
 import de.doccrazy.shared.game.base.KeyboardMovementListener;
 import de.doccrazy.shared.game.base.MovementInputListener;
 import de.doccrazy.shared.game.world.BodyBuilder;
-import de.doccrazy.shared.game.world.GameState;
 import de.doccrazy.shared.game.world.ShapeBuilder;
 
 public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListener {
@@ -43,6 +42,7 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
     private AttachedPoint startBuild;
     private Map<Body, Vector2> contacts = new HashMap<>();
     private float oobTime, stateTime, dampingTime;
+    private List<CaughtFlyActor> fliesToConsume = new ArrayList<>();
 
     public PlayerActor(GameWorld world, Vector2 spawn) {
         super(world, spawn, false);
@@ -69,6 +69,9 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
     @Override
     protected void doAct(float delta) {
         stateTime += delta;
+        if (!world.hasAmmo(threadType)) {
+            threadType = null;
+        }
         boolean released = checkRelease(jump || isLooselyAttached());
         if (released) {
             if (threadType != null) {
@@ -85,6 +88,11 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
         } else {
             body.setLinearDamping(0);
         }
+        for (CaughtFlyActor fly : fliesToConsume) {
+            fly.kill();
+            world.addScore(1);
+        }
+        fliesToConsume.clear();
         super.doAct(delta);
     }
 
@@ -96,12 +104,7 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
             oobTime = 0;
         }
         if (oobTime > OOB_KILL_TIME) {
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    world.transition(GameState.DEFEAT);
-                }
-            }, 0);
+            kill();
         }
     }
 
@@ -121,10 +124,16 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
     }
 
     private void jump(float delta) {
-        Vector2 jumpImpulse = world.getMouseTarget().cpy().sub(body.getPosition());
-        jumpImpulse = jumpImpulse.scl(JUMP_STRENGTH).clamp(JUMP_MIN, JUMP_MAX);
+        Vector2 jumpImpulse = getJumpImpulse();
         System.out.println(jumpImpulse.len());
         body.applyLinearImpulse(jumpImpulse, body.getPosition(), true);
+        Resource.SOUND.jump.play();
+    }
+
+    private Vector2 getJumpImpulse() {
+        Vector2 jumpImpulse = world.getMouseTarget().cpy().sub(body.getPosition());
+        jumpImpulse = jumpImpulse.scl(JUMP_STRENGTH).clamp(JUMP_MIN, JUMP_MAX);
+        return jumpImpulse;
     }
 
     private boolean checkRelease(boolean shouldRelease) {
@@ -176,6 +185,7 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
             attachPoint = contactPoint == null ? body.getPosition() : contactPoint;
             //move slightly to center of static body
             attachPoint.add(other.getPosition().cpy().sub(body.getPosition()).clamp(0, RADIUS));
+            Resource.SOUND.grab.play();
         }
         jointDef.initialize(body, other, body.getPosition());
         jointDef.localAnchorA.setZero();
@@ -188,10 +198,23 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
         Animation anim = attachJoints.isEmpty() ? Resource.GFX.spiderJump: Resource.GFX.spiderIdle;
         TextureRegion frame = anim.getKeyFrame(stateTime);
         drawRegion(batch, frame);
+
+        if (world.isGameInProgress() && world.getMouseTarget() != null) {
+            Vector2 impulse = getJumpImpulse();
+            float targetLen = impulse.len() * 20;
+            float targetAngle = impulse.angle();
+            batch.draw(Resource.GFX.target, body.getPosition().x, body.getPosition().y - 0.1f, 0, 0.1f, targetLen, 0.2f,
+                    1, 1, targetAngle,
+                    0, 0, Resource.GFX.target.getWidth(), Resource.GFX.target.getHeight(), false, false);
+        }
     }
 
     public void setJump(boolean jump) {
         this.jump = jump;
+    }
+
+    public ThreadType getThreadType() {
+        return threadType;
     }
 
     public void setThreadType(ThreadType threadType) {
@@ -200,13 +223,26 @@ public class PlayerActor extends ShapeActor<GameWorld> implements CollisionListe
 
     @Override
     public boolean beginContact(Body me, Body other, Vector2 normal, Vector2 contactPoint) {
-        contacts.put(other, contactPoint);
+        if (other.getUserData() instanceof CaughtFlyActor) {
+            fliesToConsume.add((CaughtFlyActor)other.getUserData());
+        } else {
+            contacts.put(other, contactPoint);
+        }
         return true;
     }
 
     private ThreadActor createThread(Body other, Vector2 attachPoint) {
-        if (startBuild != null && startBuild.getAbsolutePos().dst(attachPoint) > 0.5f) {
-            ThreadActor result = world.createThread(startBuild.getAbsolutePos(), attachPoint, threadType);
+        if (startBuild != null && startBuild.getAbsolutePos().dst(attachPoint) > 0.5f
+                && world.hasAmmo(threadType)) {
+            Vector2 startPos = startBuild.getAbsolutePos();
+            if (startBuild.getBody().getUserData() instanceof ThreadActor) {
+                startPos = startBuild.getBody().getPosition();
+            }
+            ThreadActor result = world.createThread(startPos, attachPoint, threadType);
+            if (result != null) {
+                world.addAmmo(threadType, -1);
+                Resource.SOUND.twang[MathUtils.random(Resource.SOUND.twang.length-1)].play();
+            }
             startBuild = null;
             dampingTime = stateTime;
             return result;

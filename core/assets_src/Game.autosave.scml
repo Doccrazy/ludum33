@@ -6,6 +6,12 @@
         <file id="2" name="spider/spider_leg_lower.png" width="50" height="10" pivot_x="0.1" pivot_y="0.6"/>
         <file id="3" name="spider/spider_leg_upper_short.png" width="32" height="10" pivot_x="0.15625" pivot_y="0.5"/>
     </folder>
+    <folder id="1" name="fly">
+        <file id="0" name="fly/body.png" width="100" height="100" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="1" name="fly/wing_left.png" width="35" height="15" pivot_x="1" pivot_y="0.533333"/>
+        <file id="2" name="fly/wing_right.png" width="36" height="14" pivot_x="0" pivot_y="0.5"/>
+        <file id="3" name="fly/body_front.png" width="100" height="100" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
     <entity id="0" name="spider">
         <obj_info name="bone_000" type="bone" w="45.5497" h="10"/>
         <obj_info name="bone_001" type="bone" w="34.3202" h="10"/>
@@ -612,6 +618,67 @@
                 </key>
                 <key id="1" time="300" spin="-1">
                     <bone x="38.602445" y="0.464814" angle="53.905486" scale_x="1"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+    <entity id="1" name="fly">
+        <obj_info name="bone_000" type="bone" w="44.5026" h="10"/>
+        <obj_info name="bone_001" type="bone" w="50.8096" h="10"/>
+        <obj_info name="bone_002" type="bone" w="53.9267" h="10"/>
+        <animation id="0" name="fly" length="200" interval="100">
+            <mainline>
+                <key id="0" curve_type="bezier" c1="0.340716" c2="0" c3="0.679727" c4="0.995261">
+                    <bone_ref id="0" timeline="3" key="0"/>
+                    <bone_ref id="1" parent="0" timeline="4" key="0"/>
+                    <bone_ref id="2" parent="0" timeline="5" key="0"/>
+                    <object_ref id="0" parent="2" timeline="1" key="0" z_index="0"/>
+                    <object_ref id="1" parent="1" timeline="2" key="0" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="0" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="100" curve_type="bezier" c1="0.344123" c2="0" c3="0.660988" c4="0.995261">
+                    <bone_ref id="0" timeline="3" key="0"/>
+                    <bone_ref id="1" parent="0" timeline="4" key="1"/>
+                    <bone_ref id="2" parent="0" timeline="5" key="1"/>
+                    <object_ref id="0" parent="2" timeline="1" key="0" z_index="0"/>
+                    <object_ref id="1" parent="1" timeline="2" key="0" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="0" key="0" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="body">
+                <key id="0" spin="0">
+                    <object folder="1" file="0" angle="270" scale_x="1"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="wing_left">
+                <key id="0" spin="0">
+                    <object folder="1" file="1" x="-1.04712" y="-0.52356" angle="180" scale_x="1"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="wing_right">
+                <key id="0" spin="0">
+                    <object folder="1" file="2" x="0.016185" y="-0.52331" angle="1.77147" scale_x="1"/>
+                </key>
+            </timeline>
+            <timeline id="3" obj="0" name="bone_000" object_type="bone">
+                <key id="0" spin="0">
+                    <bone x="0.52356" y="-1.04712" angle="90" scale_x="1"/>
+                </key>
+            </timeline>
+            <timeline id="4" obj="1" name="bone_001" object_type="bone">
+                <key id="0" spin="-1">
+                    <bone x="2.094241" y="-13.612565" angle="332.474774"/>
+                </key>
+                <key id="1" time="100">
+                    <bone x="2.094241" y="-13.612565" angle="206.016783"/>
+                </key>
+            </timeline>
+            <timeline id="5" obj="2" name="bone_002" object_type="bone">
+                <key id="0">
+                    <bone x="1.04712" y="15.183246" angle="26.288262"/>
+                </key>
+                <key id="1" time="100" spin="-1">
+                    <bone x="1.04712" y="15.183246" angle="152.878697"/>
                 </key>
             </timeline>
         </animation>
