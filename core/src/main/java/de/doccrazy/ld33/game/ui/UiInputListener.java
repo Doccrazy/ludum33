@@ -18,9 +18,9 @@ public class UiInputListener extends InputListener {
 	@Override
     public boolean keyDown(InputEvent event, int keycode) {
 		if (keycode == Keys.ENTER) {
-		    //if (root.getWorld().getGameState() == GameState.VICTORY) {
+		    if (root.getWorld().getGameState() == GameState.VICTORY) {
 		        root.getWorld().setNextLevel(Level1Actor.class);
-		    //}
+		    }
 			root.getWorld().transition(GameState.INIT);
 			root.getWorld().transition(GameState.PRE_GAME);
 		}
